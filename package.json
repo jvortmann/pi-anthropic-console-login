@@ -1,0 +1,32 @@
+{
+    "name": "anthropic-console-login",
+    "version": "1.0.0",
+    "description": "Anthropic Console OAuth provider for pi-coding-agent. Authenticates against the Console (organization/API billing) instead of the personal claude.ai subscription.",
+    "type": "module",
+    "keywords": [
+        "pi-package",
+        "pi-extension",
+        "anthropic",
+        "oauth",
+        "console"
+    ],
+    "license": "MIT",
+    "pi": {
+        "extensions": ["./index.ts"]
+    },
+    "dependencies": {
+        "@anthropic-ai/sdk": "^0.52.0"
+    },
+    "peerDependencies": {
+        "@mariozechner/pi-ai": "*",
+        "@mariozechner/pi-coding-agent": "*"
+    },
+    "peerDependenciesMeta": {
+        "@mariozechner/pi-ai": {
+            "optional": true
+        },
+        "@mariozechner/pi-coding-agent": {
+            "optional": true
+        }
+    }
+}
