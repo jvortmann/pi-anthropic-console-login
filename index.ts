@@ -373,17 +373,26 @@ function sanitizeSurrogates(text: string): string {
 
 function supportsAdaptiveThinking(modelId: string): boolean {
     return modelId.includes("opus-4-6") || modelId.includes("opus-4.6")
+        || modelId.includes("opus-4-7") || modelId.includes("opus-4.7")
         || modelId.includes("sonnet-4-6") || modelId.includes("sonnet-4.6");
 }
 
-type AnthropicEffort = "low" | "medium" | "high" | "max";
+type AnthropicEffort = "low" | "medium" | "high" | "xhigh" | "max";
+
+function isOpus47OrLater(modelId: string): boolean {
+    const match = modelId.match(/opus-?(\d+)[-.](\d+)/);
+    if (!match) return false;
+    const [, major, minor] = match;
+    return Number(major) > 4 || (Number(major) === 4 && Number(minor) >= 7);
+}
 
 function mapReasoningToEffort(level: SimpleStreamOptions["reasoning"], modelId: string): AnthropicEffort {
+    const isOpus = modelId.includes("opus");
     switch (level) {
         case "minimal": case "low": return "low";
         case "medium": return "medium";
         case "high": return "high";
-        case "xhigh": return modelId.includes("opus-4-6") || modelId.includes("opus-4.6") ? "max" : "high";
+        case "xhigh": return isOpus47OrLater(modelId) ? "xhigh" : isOpus ? "max" : "high";
         default: return "high";
     }
 }
@@ -637,6 +646,15 @@ export default function (pi: ExtensionAPI) {
         api: "anthropic-messages",
 
         models: [
+            {
+                id: "claude-opus-4-7",
+                name: "Claude Opus 4.7 (console)",
+                reasoning: true,
+                input: ["text", "image"],
+                cost: { input: 5, output: 25, cacheRead: 0.5, cacheWrite: 6.25 },
+                contextWindow: 1000000,
+                maxTokens: 128000,
+            },
             {
                 id: "claude-opus-4-6",
                 name: "Claude Opus 4.6 (console)",
