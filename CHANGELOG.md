@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.1
+
+### Features
+
+- Dynamic model discovery: fetches live model list from the Anthropic API on session start, no code update needed for new models
+- Family-version pricing lookup with automatic fallback to the latest known version of the same model family
+- Claude Opus 4.7 with xhigh effort level support (preserves max for Opus 4.6)
+
+### Refactoring
+
+- Modular codebase: split monolithic index.ts into `oauth/`, `models/`, `hooks/`, and `api/` modules
+
 ## v1.0
 
 Initial release of the Anthropic Console OAuth provider for pi.
