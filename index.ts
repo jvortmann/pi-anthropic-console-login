@@ -31,7 +31,8 @@ import {
     createAssistantMessageEventStream,
 } from "@mariozechner/pi-ai";
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import { FALLBACK_MODELS, fetchModels, mapApiModelsToProviderConfigs } from "./models/index.js";
+import { registerHooks } from "./hooks/index.js";
+import { FALLBACK_MODELS } from "./models/index.js";
 import { login, refreshToken } from "./oauth/index.js";
 
 // =============================================================================
@@ -311,47 +312,21 @@ function streamConsole(
 // =============================================================================
 
 export default function (pi: ExtensionAPI) {
-    pi.registerProvider("anthropic-console", {
+    const providerConfig = {
         baseUrl: "https://api.anthropic.com",
         apiKey: "ANTHROPIC_CONSOLE_API_KEY",
-        api: "anthropic-messages",
-
+        api: "anthropic-messages" as const,
         models: FALLBACK_MODELS,
-
         oauth: {
             name: "Anthropic Console account \u00b7 API usage billing",
             usesCallbackServer: true,
             login,
             refreshToken,
-            getApiKey: (cred) => cred.access,
+            getApiKey: (cred: { access: string }) => cred.access,
         },
-
         streamSimple: streamConsole,
-    });
+    };
 
-    pi.on("session_start", async (_event, ctx) => {
-        const apiKey = await ctx.modelRegistry.getApiKeyForProvider("anthropic-console");
-        if (!apiKey) return;
-
-        const apiModels = await fetchModels(apiKey);
-        if (!apiModels || apiModels.length === 0) return;
-
-        const models = mapApiModelsToProviderConfigs(apiModels);
-        if (models.length === 0) return;
-
-        pi.registerProvider("anthropic-console", {
-            baseUrl: "https://api.anthropic.com",
-            apiKey: "ANTHROPIC_CONSOLE_API_KEY",
-            api: "anthropic-messages",
-            models,
-            oauth: {
-                name: "Anthropic Console account \u00b7 API usage billing",
-                usesCallbackServer: true,
-                login,
-                refreshToken,
-                getApiKey: (cred) => cred.access,
-            },
-            streamSimple: streamConsole,
-        });
-    });
+    pi.registerProvider("anthropic-console", providerConfig);
+    registerHooks(pi, providerConfig);
 }
