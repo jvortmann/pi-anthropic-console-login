@@ -840,4 +840,30 @@ export default function (pi: ExtensionAPI) {
 
         streamSimple: streamConsole,
     });
+
+    pi.on("session_start", async (_event, ctx) => {
+        const apiKey = await ctx.modelRegistry.getApiKeyForProvider("anthropic-console");
+        if (!apiKey) return;
+
+        const apiModels = await fetchModels(apiKey);
+        if (!apiModels || apiModels.length === 0) return;
+
+        const models = mapApiModelsToProviderConfigs(apiModels);
+        if (models.length === 0) return;
+
+        pi.registerProvider("anthropic-console", {
+            baseUrl: "https://api.anthropic.com",
+            apiKey: "ANTHROPIC_CONSOLE_API_KEY",
+            api: "anthropic-messages",
+            models,
+            oauth: {
+                name: "Anthropic Console account \u00b7 API usage billing",
+                usesCallbackServer: true,
+                login,
+                refreshToken,
+                getApiKey: (cred) => cred.access,
+            },
+            streamSimple: streamConsole,
+        });
+    });
 }
