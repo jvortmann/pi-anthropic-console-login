@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.4
+
+### Refactoring
+
+- Reuse built-in Anthropic stream handler via `onPayload` hook to inject the required Claude Code identity system prompt
+- Remove custom streaming layer, message conversion, and `@anthropic-ai/sdk` dependency (~270 lines removed)
+
 ## v1.3
 
 ### Fixes
