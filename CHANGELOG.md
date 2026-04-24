@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.3
+
+### Fixes
+
+- Fix console provider breaking built-in Anthropic connection
+- Restore custom streaming layer under dedicated `anthropic-console-api` type so it no longer overrides the global `anthropic-messages` handler
+- Re-add `@anthropic-ai/sdk` dependency (required for Claude Code identity headers and system prompt)
+
 ## v1.2
 
 ### Fixes
