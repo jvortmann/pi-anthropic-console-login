@@ -13,7 +13,6 @@
  */
 
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import { streamConsole } from "./api/index.js";
 import { registerHooks } from "./hooks/index.js";
 import { FALLBACK_MODELS } from "./models/index.js";
 import { login, refreshToken } from "./oauth/index.js";
@@ -31,7 +30,6 @@ export default function (pi: ExtensionAPI) {
             refreshToken,
             getApiKey: (cred: { access: string }) => cred.access,
         },
-        streamSimple: streamConsole,
     };
 
     pi.registerProvider("anthropic-console", providerConfig);
