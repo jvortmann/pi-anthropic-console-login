@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.2
+
+### Fixes
+
+- Fix built-in Anthropic connection breaking when the plugin is installed
+- Remove custom streaming layer and reuse the built-in Anthropic provider
+- Remove `@anthropic-ai/sdk` dependency (no longer needed)
+
 ## v1.1
 
 ### Features
