@@ -14,9 +14,6 @@
     "pi": {
         "extensions": ["./index.ts"]
     },
-    "dependencies": {
-        "@anthropic-ai/sdk": "^0.52.0"
-    },
     "peerDependencies": {
         "@mariozechner/pi-ai": "*",
         "@mariozechner/pi-coding-agent": "*"
