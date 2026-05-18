@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.5
+
+### Dependencies
+
+- Migrate npm scope from `@mariozechner` to `@earendil-works` for `pi-ai` and `pi-coding-agent` peer dependencies
+
 ## v1.4
 
 ### Refactoring
