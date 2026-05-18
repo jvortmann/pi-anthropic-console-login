@@ -1,4 +1,4 @@
-import type { OAuthCredentials, OAuthLoginCallbacks } from "@mariozechner/pi-ai";
+import type { OAuthCredentials, OAuthLoginCallbacks } from "@earendil-works/pi-ai";
 import { startCallbackServer } from "./callback-server.js";
 import { AUTHORIZE_URL, CLIENT_ID, LOCAL_REDIRECT_URI, MANUAL_REDIRECT_URI, SCOPES, TOKEN_URL } from "./constants.js";
 import { parseAuthorizationInput } from "./parse.js";

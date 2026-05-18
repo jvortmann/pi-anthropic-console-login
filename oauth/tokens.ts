@@ -1,4 +1,4 @@
-import type { OAuthCredentials } from "@mariozechner/pi-ai";
+import type { OAuthCredentials } from "@earendil-works/pi-ai";
 import { API_KEY_URL, CLIENT_ID, TOKEN_URL } from "./constants.js";
 
 export async function exchangeCode(

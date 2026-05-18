@@ -12,7 +12,7 @@
  *   4. /model → select an anthropic-console model
  */
 
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { streamConsole } from "./api/stream.js";
 import { registerHooks } from "./hooks/index.js";
 import { FALLBACK_MODELS } from "./models/index.js";

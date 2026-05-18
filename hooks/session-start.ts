@@ -1,4 +1,4 @@
-import type { ExtensionAPI, ProviderConfig } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI, ProviderConfig } from "@earendil-works/pi-coding-agent";
 import { fetchModels, mapApiModelsToProviderConfigs } from "../models/index.js";
 
 export function registerHooks(pi: ExtensionAPI, providerConfig: ProviderConfig): void {
