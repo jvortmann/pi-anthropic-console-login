@@ -15,29 +15,25 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import * as codingAgent from "@earendil-works/pi-coding-agent";
 import { streamConsole } from "./api/stream.js";
-import { registerHooks } from "./hooks/index.js";
-import { FALLBACK_MODELS } from "./models/index.js";
+import { FALLBACK_MODELS, refreshConsoleModels } from "./models/index.js";
 import { login, refreshToken } from "./oauth/index.js";
 import { requireSupportedPiVersion } from "./pi-version.js";
 
 export default function (pi: ExtensionAPI) {
     requireSupportedPiVersion((codingAgent as { VERSION?: string }).VERSION);
 
-    const providerConfig = {
+    pi.registerProvider("anthropic-console", {
         baseUrl: "https://api.anthropic.com",
         apiKey: "$ANTHROPIC_CONSOLE_API_KEY",
         api: "anthropic-console-api" as const,
         models: FALLBACK_MODELS,
+        refreshModels: refreshConsoleModels,
         oauth: {
             name: "Anthropic Console account \u00b7 API usage billing",
-            usesCallbackServer: true,
             login,
             refreshToken,
             getApiKey: (cred: { access: string }) => cred.access,
         },
         streamSimple: streamConsole,
-    };
-
-    pi.registerProvider("anthropic-console", providerConfig);
-    registerHooks(pi, providerConfig);
+    });
 }
