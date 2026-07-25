@@ -21,7 +21,7 @@ import { login, refreshToken } from "./oauth/index.js";
 export default function (pi: ExtensionAPI) {
     const providerConfig = {
         baseUrl: "https://api.anthropic.com",
-        apiKey: "ANTHROPIC_CONSOLE_API_KEY",
+        apiKey: "$ANTHROPIC_CONSOLE_API_KEY",
         api: "anthropic-console-api" as const,
         models: FALLBACK_MODELS,
         oauth: {
