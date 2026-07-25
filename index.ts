@@ -5,11 +5,11 @@
  * authenticating against the Console (organization/API billing)
  * instead of the personal claude.ai subscription.
  *
+ * Requires pi >= 0.81.0.
+ *
  * Usage:
- *   1. Install deps: cd ~/.config/pi/extensions/anthropic-console && npm install
- *   2. Restart pi (or /reload)
- *   3. /login → select "Anthropic Console account · API usage billing"
- *   4. /model → select an anthropic-console model
+ *   1. /login → select "Anthropic Console account · API usage billing"
+ *   2. /model → select an anthropic-console model
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";

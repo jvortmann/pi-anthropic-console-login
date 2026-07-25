@@ -1,5 +1,23 @@
 # Changelog
 
+## v2.0
+
+### Breaking changes
+
+- Require pi >= 0.81.0; the extension no longer loads on older pi
+
+### Features
+
+- Refresh the console model catalog through the provider `refreshModels` callback, so pi updates the live model list after login, when the model selector opens, and at startup
+
+### Refactoring
+
+- Replace the `session_start` model-refresh hook with `refreshModels`; fall back to the built-in catalog when offline or unauthenticated
+
+### Fixes
+
+- Interpolate `$ANTHROPIC_CONSOLE_API_KEY` so the environment-variable login fallback resolves the key instead of using the literal name
+
 ## v1.5
 
 ### Dependencies
