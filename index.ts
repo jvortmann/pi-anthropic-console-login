@@ -13,12 +13,16 @@
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import * as codingAgent from "@earendil-works/pi-coding-agent";
 import { streamConsole } from "./api/stream.js";
 import { registerHooks } from "./hooks/index.js";
 import { FALLBACK_MODELS } from "./models/index.js";
 import { login, refreshToken } from "./oauth/index.js";
+import { requireSupportedPiVersion } from "./pi-version.js";
 
 export default function (pi: ExtensionAPI) {
+    requireSupportedPiVersion((codingAgent as { VERSION?: string }).VERSION);
+
     const providerConfig = {
         baseUrl: "https://api.anthropic.com",
         apiKey: "$ANTHROPIC_CONSOLE_API_KEY",

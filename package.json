@@ -11,6 +11,9 @@
         "console"
     ],
     "license": "MIT",
+    "scripts": {
+        "test": "bun test"
+    },
     "pi": {
         "extensions": ["./index.ts"]
     },
