@@ -1,6 +1,6 @@
 import type { AnthropicModelInfo, AnthropicModelListResponse } from "./types.js";
 
-export async function fetchModels(apiKey: string): Promise<AnthropicModelInfo[] | null> {
+export async function fetchModels(apiKey: string, signal?: AbortSignal): Promise<AnthropicModelInfo[] | null> {
     try {
         const allModels: AnthropicModelInfo[] = [];
         let afterId: string | undefined;
@@ -15,6 +15,7 @@ export async function fetchModels(apiKey: string): Promise<AnthropicModelInfo[] 
                     "x-api-key": apiKey,
                     "anthropic-version": "2023-06-01",
                 },
+                signal,
             });
 
             if (!response.ok) return null;
