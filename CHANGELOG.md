@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.0.1
+
+### Fixes
+
+- Persist the discovered console model catalog so it survives restarts. pi refreshes models cache-only at startup, so the catalog previously reverted to the built-in fallback list every session and enabled models such as `anthropic-console/claude-opus-5` reported "No models match pattern"
+
 ## v2.0
 
 ### Breaking changes

@@ -1,6 +1,6 @@
 {
     "name": "anthropic-console-login",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "description": "Anthropic Console OAuth provider for pi-coding-agent. Authenticates against the Console (organization/API billing) instead of the personal claude.ai subscription.",
     "type": "module",
     "keywords": [
