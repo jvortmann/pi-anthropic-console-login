@@ -20,7 +20,7 @@ pi install git:github.com/jvortmann/anthropic-console-login
 
 ## Models
 
-The model list is discovered dynamically from your Console account and refreshed by pi after login, when the model selector opens, and at startup. When offline or before login, a built-in fallback catalog is used.
+The model list is discovered dynamically from your Console account and cached on disk. pi refreshes it after login and when the model selector opens, and restores the cached catalog at startup. Until the first successful refresh, a built-in fallback catalog is used.
 
 ## How it works
 
