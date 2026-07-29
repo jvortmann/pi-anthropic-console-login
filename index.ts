@@ -18,14 +18,15 @@ import { streamConsole } from "./api/stream.js";
 import { FALLBACK_MODELS, refreshConsoleModels } from "./models/index.js";
 import { login, refreshToken } from "./oauth/index.js";
 import { requireSupportedPiVersion } from "./pi-version.js";
+import { PROVIDER_API, PROVIDER_BASE_URL, PROVIDER_ID } from "./provider.js";
 
 export default function (pi: ExtensionAPI) {
     requireSupportedPiVersion((codingAgent as { VERSION?: string }).VERSION);
 
-    pi.registerProvider("anthropic-console", {
-        baseUrl: "https://api.anthropic.com",
+    pi.registerProvider(PROVIDER_ID, {
+        baseUrl: PROVIDER_BASE_URL,
         apiKey: "$ANTHROPIC_CONSOLE_API_KEY",
-        api: "anthropic-console-api" as const,
+        api: PROVIDER_API,
         models: FALLBACK_MODELS,
         refreshModels: refreshConsoleModels,
         oauth: {
