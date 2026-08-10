@@ -1,4 +1,4 @@
-export const MIN_PI_VERSION = "0.81.0";
+export const MIN_PI_VERSION = "0.84.0";
 
 export function isPiVersionSupported(version: string | undefined): boolean {
     if (!version) return false;

@@ -29,16 +29,19 @@ interface StoredCatalog {
     checkedAt?: number;
 }
 
-interface ConsoleModelsStore {
-    read(): Promise<StoredCatalog | undefined>;
-    write(entry: StoredCatalog): Promise<void>;
+interface ModelsPublication {
+    persist?: StoredCatalog | null;
+    update?: () => void;
 }
 
 export interface ConsoleRefreshContext {
     credential?: RefreshCredential;
+    /** Provider-scoped catalog snapshot pi captured before this refresh phase. */
+    stored?: Readonly<StoredCatalog>;
+    /** Generation-checked publication of the refreshed catalog. */
+    publish?(publication: ModelsPublication): Promise<boolean>;
     allowNetwork: boolean;
     signal?: AbortSignal;
-    store?: ConsoleModelsStore;
 }
 
 type ModelFetcher = (apiKey: string, signal?: AbortSignal) => Promise<AnthropicModelInfo[] | null>;
@@ -47,7 +50,7 @@ export async function refreshConsoleModels(
     context: ConsoleRefreshContext,
     fetchImpl: ModelFetcher = fetchModels,
 ): Promise<ProviderModelConfig[]> {
-    const stored = await readStoredCatalog(context.store);
+    const stored = readStoredCatalog(context);
     if (!context.allowNetwork) return stored ?? FALLBACK_MODELS;
     const apiKey = extractApiKey(context.credential);
     if (!apiKey) return stored ?? FALLBACK_MODELS;
@@ -55,35 +58,28 @@ export async function refreshConsoleModels(
     if (!models || models.length === 0) return stored ?? FALLBACK_MODELS;
 
     const refreshed = mapApiModelsToProviderConfigs(models);
-    await writeStoredCatalog(context.store, refreshed);
+    await publishCatalog(context, refreshed);
     return refreshed;
 }
 
-async function readStoredCatalog(store?: ConsoleModelsStore): Promise<ProviderModelConfig[] | undefined> {
-    if (!store) return undefined;
-    try {
-        const entry = await store.read();
-        if (!entry || entry.models.length === 0) return undefined;
-        return entry.models.map(toProviderModelConfig);
-    } catch {
-        return undefined;
-    }
+function readStoredCatalog(context: ConsoleRefreshContext): ProviderModelConfig[] | undefined {
+    const entry = context.stored;
+    if (!entry || entry.models.length === 0) return undefined;
+    return entry.models.map(toProviderModelConfig);
 }
 
-async function writeStoredCatalog(
-    store: ConsoleModelsStore | undefined,
-    models: ProviderModelConfig[],
-): Promise<void> {
-    if (!store) return;
+async function publishCatalog(context: ConsoleRefreshContext, models: ProviderModelConfig[]): Promise<void> {
     try {
-        await store.write({
-            models: models.map((model) => ({
-                ...model,
-                api: PROVIDER_API,
-                provider: PROVIDER_ID,
-                baseUrl: PROVIDER_BASE_URL,
-            })),
-            checkedAt: Date.now(),
+        await context.publish?.({
+            persist: {
+                models: models.map((model) => ({
+                    ...model,
+                    api: PROVIDER_API,
+                    provider: PROVIDER_ID,
+                    baseUrl: PROVIDER_BASE_URL,
+                })),
+                checkedAt: Date.now(),
+            },
         });
     } catch {
         // Persisting the catalog is best-effort; the refreshed list is still returned.

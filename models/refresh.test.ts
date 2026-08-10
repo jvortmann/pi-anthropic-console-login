@@ -27,22 +27,25 @@ interface StoredEntry {
     checkedAt?: number;
 }
 
-function fakeStore(initial?: StoredEntry) {
-    let entry: StoredEntry | undefined = initial;
+function fakePublish() {
+    const published: { persist?: StoredEntry | null }[] = [];
     return {
-        read: async () => entry as never,
-        write: async (next: StoredEntry) => {
-            entry = next;
+        publish: async (publication: { persist?: StoredEntry | null }) => {
+            published.push(publication);
+            return true;
         },
-        current: () => entry,
+        published,
     };
 }
 
 test("keeps the stored catalog when the network is not allowed", async () => {
-    const store = fakeStore({ models: [storedModel("claude-opus-5", "Claude Opus 5 (console)")] });
-
     const result = await refreshConsoleModels(
-        { credential: { type: "oauth", access: "sk-ant-key" }, allowNetwork: false, store },
+        {
+            credential: { type: "oauth", access: "sk-ant-key" },
+            allowNetwork: false,
+            stored: { models: [storedModel("claude-opus-5", "Claude Opus 5 (console)")] },
+            publish: fakePublish().publish,
+        },
         async () => {
             throw new Error("should not fetch without network access");
         },
@@ -52,14 +55,14 @@ test("keeps the stored catalog when the network is not allowed", async () => {
 });
 
 test("persists a successful live fetch for later sessions", async () => {
-    const store = fakeStore();
+    const publisher = fakePublish();
 
     await refreshConsoleModels(
-        { credential: { type: "oauth", access: "sk-ant-key" }, allowNetwork: true, store },
+        { credential: { type: "oauth", access: "sk-ant-key" }, allowNetwork: true, publish: publisher.publish },
         async () => [model("claude-opus-5", "Claude Opus 5")],
     );
 
-    const entry = store.current();
+    const entry = publisher.published[0]?.persist;
     expect(entry?.models.map((m) => m.id)).toEqual(["claude-opus-5"]);
     expect(entry?.models[0].provider).toBe("anthropic-console");
     expect(entry?.models[0].api).toBe("anthropic-console-api");
@@ -70,7 +73,7 @@ test("persists a successful live fetch for later sessions", async () => {
 test("maps a live fetch using the OAuth access token", async () => {
     let usedKey: string | undefined;
     const result = await refreshConsoleModels(
-        { credential: { type: "oauth", access: "sk-ant-key" }, allowNetwork: true },
+        { credential: { type: "oauth", access: "sk-ant-key" }, allowNetwork: true, publish: fakePublish().publish },
         async (apiKey) => {
             usedKey = apiKey;
             return [model("claude-sonnet-4-6", "Claude Sonnet 4.6")];
@@ -83,7 +86,7 @@ test("maps a live fetch using the OAuth access token", async () => {
 });
 
 test("falls back to the built-in catalog when there is no credential", async () => {
-    const result = await refreshConsoleModels({ allowNetwork: true }, async () => {
+    const result = await refreshConsoleModels({ allowNetwork: true, publish: fakePublish().publish }, async () => {
         throw new Error("should not fetch without a credential");
     });
     expect(result).toEqual(FALLBACK_MODELS);
@@ -92,7 +95,7 @@ test("falls back to the built-in catalog when there is no credential", async () 
 test("does not hit the network when network access is disabled", async () => {
     let fetched = false;
     const result = await refreshConsoleModels(
-        { credential: { type: "oauth", access: "sk-ant-key" }, allowNetwork: false },
+        { credential: { type: "oauth", access: "sk-ant-key" }, allowNetwork: false, publish: fakePublish().publish },
         async () => {
             fetched = true;
             return [model("claude-sonnet-4-6", "Claude Sonnet 4.6")];
@@ -104,37 +107,49 @@ test("does not hit the network when network access is disabled", async () => {
 
 test("falls back to the built-in catalog when the fetch fails", async () => {
     const result = await refreshConsoleModels(
-        { credential: { type: "oauth", access: "sk-ant-key" }, allowNetwork: true },
+        { credential: { type: "oauth", access: "sk-ant-key" }, allowNetwork: true, publish: fakePublish().publish },
         async () => null,
     );
     expect(result).toEqual(FALLBACK_MODELS);
 });
 
 test("keeps the stored catalog when the fetch fails", async () => {
-    const store = fakeStore({ models: [storedModel("claude-opus-5", "Claude Opus 5 (console)")] });
+    const publisher = fakePublish();
 
     const result = await refreshConsoleModels(
-        { credential: { type: "oauth", access: "sk-ant-key" }, allowNetwork: true, store },
+        {
+            credential: { type: "oauth", access: "sk-ant-key" },
+            allowNetwork: true,
+            stored: { models: [storedModel("claude-opus-5", "Claude Opus 5 (console)")] },
+            publish: publisher.publish,
+        },
         async () => null,
+    );
+
+    expect(result.map((m) => m.id)).toEqual(["claude-opus-5"]);
+    expect(publisher.published.length).toBe(0);
+});
+
+test("keeps the stored catalog when there is no credential", async () => {
+    const result = await refreshConsoleModels(
+        {
+            allowNetwork: true,
+            stored: { models: [storedModel("claude-opus-5", "Claude Opus 5 (console)")] },
+            publish: fakePublish().publish,
+        },
+        async () => {
+            throw new Error("should not fetch without a credential");
+        },
     );
 
     expect(result.map((m) => m.id)).toEqual(["claude-opus-5"]);
 });
 
-test("keeps the stored catalog when there is no credential", async () => {
-    const store = fakeStore({ models: [storedModel("claude-opus-5", "Claude Opus 5 (console)")] });
-
-    const result = await refreshConsoleModels({ allowNetwork: true, store }, async () => {
-        throw new Error("should not fetch without a credential");
-    });
-
-    expect(result.map((m) => m.id)).toEqual(["claude-opus-5"]);
-});
-
-test("falls back to the built-in catalog when the store is empty", async () => {
-    const store = fakeStore({ models: [] });
-
-    const result = await refreshConsoleModels({ allowNetwork: false, store }, async () => null);
+test("falls back to the built-in catalog when the stored catalog is empty", async () => {
+    const result = await refreshConsoleModels(
+        { allowNetwork: false, stored: { models: [] }, publish: fakePublish().publish },
+        async () => null,
+    );
 
     expect(result).toEqual(FALLBACK_MODELS);
 });
@@ -142,7 +157,7 @@ test("falls back to the built-in catalog when the store is empty", async () => {
 test("uses the stored api-key credential when present", async () => {
     let usedKey: string | undefined;
     await refreshConsoleModels(
-        { credential: { type: "api_key", key: "env-key" }, allowNetwork: true },
+        { credential: { type: "api_key", key: "env-key" }, allowNetwork: true, publish: fakePublish().publish },
         async (apiKey) => {
             usedKey = apiKey;
             return [model("claude-haiku-4-5-20251001", "Claude Haiku 4.5")];
