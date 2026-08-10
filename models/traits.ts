@@ -40,6 +40,8 @@ function parseFamilyVersion(modelId: string): { family: string; major: number; m
         if (!modelId.includes(family)) continue;
         const match = modelId.match(new RegExp(`${family}[- ](\\d+)[-.](\\d+)`));
         if (match) return { family, major: Number(match[1]), minor: Number(match[2]) };
+        const majorOnly = modelId.match(new RegExp(`${family}[- ](\\d{1,2})(?!\\d)`));
+        if (majorOnly) return { family, major: Number(majorOnly[1]), minor: 0 };
     }
     return null;
 }
