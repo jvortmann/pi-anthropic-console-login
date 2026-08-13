@@ -1,5 +1,6 @@
 import type { OAuthCredentials } from "@earendil-works/pi-ai";
 import { API_KEY_URL, CLIENT_ID, TOKEN_URL } from "./constants.js";
+import { fetchWithRetry } from "./request.js";
 
 export async function exchangeCode(
     code: string,
@@ -37,11 +38,15 @@ export async function exchangeCode(
     };
 }
 
-export async function createApiKey(oauthAccessToken: string): Promise<string> {
-    const response = await fetch(API_KEY_URL, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${oauthAccessToken}` },
-    });
+export async function createApiKey(oauthAccessToken: string, signal?: AbortSignal): Promise<string> {
+    const response = await fetchWithRetry(
+        API_KEY_URL,
+        {
+            method: "POST",
+            headers: { Authorization: `Bearer ${oauthAccessToken}` },
+        },
+        { signal },
+    );
 
     if (!response.ok) {
         throw new Error(`API key creation failed: ${await response.text()}`);

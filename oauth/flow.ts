@@ -3,6 +3,7 @@ import { startCallbackServer } from "./callback-server.js";
 import { AUTHORIZE_URL, CLIENT_ID, LOCAL_REDIRECT_URI, MANUAL_REDIRECT_URI, SCOPES, TOKEN_URL } from "./constants.js";
 import { parseAuthorizationInput } from "./parse.js";
 import { generatePKCE } from "./pkce.js";
+import { fetchWithRetry } from "./request.js";
 import { createApiKey, exchangeCode } from "./tokens.js";
 
 export async function login(callbacks: OAuthLoginCallbacks): Promise<OAuthCredentials> {
@@ -112,16 +113,22 @@ export async function login(callbacks: OAuthLoginCallbacks): Promise<OAuthCreden
     };
 }
 
-export async function refreshToken(credentials: OAuthCredentials): Promise<OAuthCredentials> {
-    const response = await fetch(TOKEN_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            grant_type: "refresh_token",
-            client_id: CLIENT_ID,
-            refresh_token: credentials.refresh,
-        }),
-    });
+export async function refreshToken(credentials: OAuthCredentials, signal?: AbortSignal): Promise<OAuthCredentials> {
+    signal?.throwIfAborted();
+
+    const response = await fetchWithRetry(
+        TOKEN_URL,
+        {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                grant_type: "refresh_token",
+                client_id: CLIENT_ID,
+                refresh_token: credentials.refresh,
+            }),
+        },
+        { signal },
+    );
 
     if (!response.ok) {
         throw new Error(`Token refresh failed: ${await response.text()}`);
@@ -133,7 +140,7 @@ export async function refreshToken(credentials: OAuthCredentials): Promise<OAuth
         expires_in: number;
     };
 
-    const apiKey = await createApiKey(data.access_token);
+    const apiKey = await createApiKey(data.access_token, signal);
 
     return {
         refresh: data.refresh_token,
