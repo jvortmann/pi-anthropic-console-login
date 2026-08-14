@@ -1,5 +1,17 @@
 # Changelog
 
+## v3.0
+
+### Breaking changes
+
+- Require pi >= 0.84.0; the extension no longer loads on older pi
+
+### Fixes
+
+- Restore the discovered console catalog again on pi 0.84, which replaced the model-refresh store handle with a catalog snapshot and a `publish` callback. The old handle was silently absent, so every startup fell back to the built-in list and enabled models such as `anthropic-console/claude-opus-5` reported "No models match pattern"
+- Register model ids that carry only a major version, such as `claude-opus-5`, with the traits of their family instead of the conservative defaults; they previously claimed a 200k context window and reported no cost
+- Retry transient connection failures during token refresh and honor the abort signal pi supplies, so a DNS hiccup or connect timeout no longer ends the session. A refused refresh token still fails immediately
+
 ## v2.0.1
 
 ### Fixes
