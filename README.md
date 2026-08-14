@@ -4,7 +4,7 @@ A [pi](https://github.com/earendil-works/pi) package that adds **Anthropic Conso
 
 ## Requirements
 
-- pi >= 0.81.0 (the extension refuses to load on older versions)
+- pi >= 0.84.0 (the extension refuses to load on older versions)
 
 ## Install
 
@@ -31,7 +31,7 @@ The extension registers an `anthropic-console` provider with OAuth support. On l
 3. Creates an API key scoped to your organization
 4. Registers models that use the Console API endpoint
 
-The live model catalog is kept up to date through the provider's `refreshModels` callback. Token refresh is handled automatically.
+The live model catalog is kept up to date through the provider's `refreshModels` callback, which reads the catalog snapshot pi passes in and persists each successful fetch through `publish`. Token refresh is handled automatically and retries transient connection failures, so a brief network outage does not end the session.
 
 ## License
 

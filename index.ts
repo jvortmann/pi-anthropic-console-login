@@ -5,7 +5,7 @@
  * authenticating against the Console (organization/API billing)
  * instead of the personal claude.ai subscription.
  *
- * Requires pi >= 0.81.0.
+ * Requires pi >= 0.84.0.
  *
  * Usage:
  *   1. /login → select "Anthropic Console account · API usage billing"
