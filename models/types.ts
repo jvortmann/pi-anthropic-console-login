@@ -1,3 +1,5 @@
+import type { ProviderModelConfig } from "@earendil-works/pi-coding-agent";
+
 export interface AnthropicModelInfo {
     id: string;
     display_name: string;
@@ -20,6 +22,9 @@ export interface AnthropicModelListResponse {
     first_id: string | null;
     last_id: string | null;
 }
+
+/** Resolves per-million-token pricing for a model id, when the host catalog knows it. */
+export type ModelCostLookup = (modelId: string) => ProviderModelConfig["cost"] | undefined;
 
 export interface ModelTraits {
     reasoning: boolean;

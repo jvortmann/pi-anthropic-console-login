@@ -57,6 +57,32 @@ test("falls back to the known traits when the response carries no metadata", () 
     expect(mapped.reasoning).toBe(true);
 });
 
+test("prices a model from the host catalog when it knows that model", () => {
+    const [mapped] = mapApiModelsToProviderConfigs([apiModel("claude-fable-5")], () => ({
+        input: 10,
+        output: 50,
+        cacheRead: 1,
+        cacheWrite: 12.5,
+    }));
+
+    expect(mapped.cost).toEqual({ input: 10, output: 50, cacheRead: 1, cacheWrite: 12.5 });
+});
+
+test("keeps the known traits price when the host catalog does not know the model", () => {
+    const [mapped] = mapApiModelsToProviderConfigs([apiModel("claude-haiku-4-5-20251001")], () => undefined);
+
+    expect(mapped.cost).toEqual({ input: 1, output: 5, cacheRead: 0.1, cacheWrite: 1.25 });
+});
+
+test("still registers the model when the host catalog lookup fails", () => {
+    const [mapped] = mapApiModelsToProviderConfigs([apiModel("claude-haiku-4-5-20251001")], () => {
+        throw new Error("registry unavailable");
+    });
+
+    expect(mapped.id).toBe("claude-haiku-4-5-20251001");
+    expect(mapped.cost).toEqual({ input: 1, output: 5, cacheRead: 0.1, cacheWrite: 1.25 });
+});
+
 test("names the model after its display name", () => {
     const [mapped] = mapApiModelsToProviderConfigs([
         apiModel("claude-opus-5", { display_name: "Claude Opus 5" }),

@@ -70,6 +70,24 @@ test("persists a successful live fetch for later sessions", async () => {
     expect(typeof entry?.checkedAt).toBe("number");
 });
 
+test("prices the published catalog through the host catalog lookup", async () => {
+    const publisher = fakePublish();
+
+    const result = await refreshConsoleModels(
+        { credential: { type: "oauth", access: "sk-ant-key" }, allowNetwork: true, publish: publisher.publish },
+        async () => [model("claude-fable-5", "Claude Fable 5")],
+        () => ({ input: 10, output: 50, cacheRead: 1, cacheWrite: 12.5 }),
+    );
+
+    expect(result[0].cost).toEqual({ input: 10, output: 50, cacheRead: 1, cacheWrite: 12.5 });
+    expect(publisher.published[0]?.persist?.models[0].cost).toEqual({
+        input: 10,
+        output: 50,
+        cacheRead: 1,
+        cacheWrite: 12.5,
+    });
+});
+
 test("maps a live fetch using the OAuth access token", async () => {
     let usedKey: string | undefined;
     const result = await refreshConsoleModels(
