@@ -13,11 +13,17 @@ export function mapApiModelsToProviderConfigs(models: AnthropicModelInfo[]): Pro
             return {
                 id: m.id,
                 name: `${m.display_name} (console)`,
-                reasoning: traits.reasoning,
-                input: traits.input,
+                reasoning: m.capabilities?.thinking?.supported ?? traits.reasoning,
+                input: advertisedInput(m) ?? traits.input,
                 cost: { ...traits.cost },
-                contextWindow: traits.contextWindow,
-                maxTokens: traits.maxTokens,
+                contextWindow: m.max_input_tokens ?? traits.contextWindow,
+                maxTokens: m.max_tokens ?? traits.maxTokens,
             };
         });
+}
+
+function advertisedInput(model: AnthropicModelInfo): ("text" | "image")[] | undefined {
+    const imageInput = model.capabilities?.image_input;
+    if (!imageInput) return undefined;
+    return imageInput.supported ? ["text", "image"] : ["text"];
 }
