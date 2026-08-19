@@ -23,8 +23,18 @@ export interface AnthropicModelListResponse {
     last_id: string | null;
 }
 
-/** Resolves per-million-token pricing for a model id, when the host catalog knows it. */
-export type ModelCostLookup = (modelId: string) => ProviderModelConfig["cost"] | undefined;
+/**
+ * The console reports no pricing and no request-shaping hints, so both are read
+ * from the entry pi already maintains for the same model id.
+ */
+export interface HostModel {
+    cost?: ProviderModelConfig["cost"];
+    compat?: ProviderModelConfig["compat"];
+    thinkingLevelMap?: ProviderModelConfig["thinkingLevelMap"];
+}
+
+/** Resolves the host catalog entry for a model id, when the host catalog knows it. */
+export type HostModelLookup = (modelId: string) => HostModel | undefined;
 
 export interface ModelTraits {
     reasoning: boolean;

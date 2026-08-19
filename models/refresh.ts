@@ -3,7 +3,7 @@ import { PROVIDER_API, PROVIDER_BASE_URL, PROVIDER_ID } from "../provider.js";
 import { FALLBACK_MODELS } from "./fallback.js";
 import { fetchModels } from "./fetch.js";
 import { mapApiModelsToProviderConfigs } from "./map.js";
-import type { AnthropicModelInfo, ModelCostLookup } from "./types.js";
+import type { AnthropicModelInfo, HostModelLookup } from "./types.js";
 
 interface RefreshCredential {
     type: "oauth" | "api_key";
@@ -49,7 +49,7 @@ type ModelFetcher = (apiKey: string, signal?: AbortSignal) => Promise<AnthropicM
 export async function refreshConsoleModels(
     context: ConsoleRefreshContext,
     fetchImpl: ModelFetcher = fetchModels,
-    lookupCost?: ModelCostLookup,
+    lookupHostModel?: HostModelLookup,
 ): Promise<ProviderModelConfig[]> {
     const stored = readStoredCatalog(context);
     if (!context.allowNetwork) return stored ?? FALLBACK_MODELS;
@@ -58,7 +58,7 @@ export async function refreshConsoleModels(
     const models = await fetchImpl(apiKey, context.signal);
     if (!models || models.length === 0) return stored ?? FALLBACK_MODELS;
 
-    const refreshed = mapApiModelsToProviderConfigs(models, lookupCost);
+    const refreshed = mapApiModelsToProviderConfigs(models, lookupHostModel);
     await publishCatalog(context, refreshed);
     return refreshed;
 }

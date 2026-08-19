@@ -1,10 +1,10 @@
 import type { ProviderModelConfig } from "@earendil-works/pi-coding-agent";
 import { lookupTraits } from "./traits.js";
-import type { AnthropicModelInfo, ModelCostLookup } from "./types.js";
+import type { AnthropicModelInfo, HostModel, HostModelLookup } from "./types.js";
 
 export function mapApiModelsToProviderConfigs(
     models: AnthropicModelInfo[],
-    lookupCost?: ModelCostLookup,
+    lookupHostModel?: HostModelLookup,
 ): ProviderModelConfig[] {
     return models
         .filter((m) => {
@@ -13,23 +13,26 @@ export function mapApiModelsToProviderConfigs(
         })
         .map((m) => {
             const traits = lookupTraits(m.id);
+            const host = hostModel(m.id, lookupHostModel);
             return {
                 id: m.id,
                 name: `${m.display_name} (console)`,
                 reasoning: m.capabilities?.thinking?.supported ?? traits.reasoning,
                 input: advertisedInput(m) ?? traits.input,
-                cost: { ...(hostCost(m.id, lookupCost) ?? traits.cost) },
+                cost: { ...(host?.cost ?? traits.cost) },
                 contextWindow: m.max_input_tokens ?? traits.contextWindow,
                 maxTokens: m.max_tokens ?? traits.maxTokens,
+                compat: host?.compat,
+                thinkingLevelMap: host?.thinkingLevelMap,
             };
         });
 }
 
-function hostCost(modelId: string, lookupCost?: ModelCostLookup): ProviderModelConfig["cost"] | undefined {
+function hostModel(modelId: string, lookupHostModel?: HostModelLookup): HostModel | undefined {
     try {
-        return lookupCost?.(modelId);
+        return lookupHostModel?.(modelId);
     } catch {
-        // The host catalog is an optional pricing source; the traits table still applies.
+        // The host catalog is an optional source; the traits table still applies.
         return undefined;
     }
 }

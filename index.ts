@@ -23,16 +23,17 @@ import { HOST_CATALOG_PROVIDER_ID, PROVIDER_API, PROVIDER_BASE_URL, PROVIDER_ID 
 export default function (pi: ExtensionAPI) {
     requireSupportedPiVersion((codingAgent as { VERSION?: string }).VERSION);
 
-    // The console serves the same models as the built-in provider but reports no
-    // pricing, so costs are read from the catalog pi already keeps current.
-    const lookupCost = (modelId: string) => pi.modelRegistry.find(HOST_CATALOG_PROVIDER_ID, modelId)?.cost;
+    // The console serves the same models as the built-in provider but reports
+    // neither pricing nor request-shaping hints, so both are read from the
+    // catalog pi already keeps current for those ids.
+    const lookupHostModel = (modelId: string) => pi.modelRegistry.find(HOST_CATALOG_PROVIDER_ID, modelId);
 
     pi.registerProvider(PROVIDER_ID, {
         baseUrl: PROVIDER_BASE_URL,
         apiKey: "$ANTHROPIC_CONSOLE_API_KEY",
         api: PROVIDER_API,
         models: FALLBACK_MODELS,
-        refreshModels: (context) => refreshConsoleModels(context, fetchModels, lookupCost),
+        refreshModels: (context) => refreshConsoleModels(context, fetchModels, lookupHostModel),
         oauth: {
             name: "Anthropic Console account \u00b7 API usage billing",
             login,

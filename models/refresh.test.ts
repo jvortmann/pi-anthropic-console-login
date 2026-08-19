@@ -70,16 +70,22 @@ test("persists a successful live fetch for later sessions", async () => {
     expect(typeof entry?.checkedAt).toBe("number");
 });
 
-test("prices the published catalog through the host catalog lookup", async () => {
+test("applies the host catalog entry to the published catalog", async () => {
     const publisher = fakePublish();
 
     const result = await refreshConsoleModels(
         { credential: { type: "oauth", access: "sk-ant-key" }, allowNetwork: true, publish: publisher.publish },
         async () => [model("claude-fable-5", "Claude Fable 5")],
-        () => ({ input: 10, output: 50, cacheRead: 1, cacheWrite: 12.5 }),
+        () => ({
+            cost: { input: 10, output: 50, cacheRead: 1, cacheWrite: 12.5 },
+            compat: { forceAdaptiveThinking: true },
+            thinkingLevelMap: { xhigh: "xhigh" },
+        }),
     );
 
     expect(result[0].cost).toEqual({ input: 10, output: 50, cacheRead: 1, cacheWrite: 12.5 });
+    expect(result[0].compat).toEqual({ forceAdaptiveThinking: true });
+    expect(result[0].thinkingLevelMap).toEqual({ xhigh: "xhigh" });
     expect(publisher.published[0]?.persist?.models[0].cost).toEqual({
         input: 10,
         output: 50,

@@ -57,12 +57,26 @@ test("falls back to the known traits when the response carries no metadata", () 
     expect(mapped.reasoning).toBe(true);
 });
 
+test("carries the host catalog's compatibility settings onto the console model", () => {
+    const [mapped] = mapApiModelsToProviderConfigs([apiModel("claude-opus-5")], () => ({
+        cost: { input: 5, output: 25, cacheRead: 0.5, cacheWrite: 6.25 },
+        compat: { forceAdaptiveThinking: true, supportsTemperature: false },
+    }));
+
+    expect(mapped.compat).toEqual({ forceAdaptiveThinking: true, supportsTemperature: false });
+});
+
+test("carries the host catalog's thinking levels onto the console model", () => {
+    const [mapped] = mapApiModelsToProviderConfigs([apiModel("claude-opus-5")], () => ({
+        thinkingLevelMap: { xhigh: "xhigh", max: "max" },
+    }));
+
+    expect(mapped.thinkingLevelMap).toEqual({ xhigh: "xhigh", max: "max" });
+});
+
 test("prices a model from the host catalog when it knows that model", () => {
     const [mapped] = mapApiModelsToProviderConfigs([apiModel("claude-fable-5")], () => ({
-        input: 10,
-        output: 50,
-        cacheRead: 1,
-        cacheWrite: 12.5,
+        cost: { input: 10, output: 50, cacheRead: 1, cacheWrite: 12.5 },
     }));
 
     expect(mapped.cost).toEqual({ input: 10, output: 50, cacheRead: 1, cacheWrite: 12.5 });
@@ -74,12 +88,20 @@ test("keeps the known traits price when the host catalog does not know the model
     expect(mapped.cost).toEqual({ input: 1, output: 5, cacheRead: 0.1, cacheWrite: 1.25 });
 });
 
+test("leaves request shaping unset when the host catalog does not know the model", () => {
+    const [mapped] = mapApiModelsToProviderConfigs([apiModel("claude-unknown-9")], () => undefined);
+
+    expect(mapped.compat).toBe(undefined);
+    expect(mapped.thinkingLevelMap).toBe(undefined);
+});
+
 test("still registers the model when the host catalog lookup fails", () => {
     const [mapped] = mapApiModelsToProviderConfigs([apiModel("claude-haiku-4-5-20251001")], () => {
         throw new Error("registry unavailable");
     });
 
     expect(mapped.id).toBe("claude-haiku-4-5-20251001");
+    expect(mapped.compat).toBe(undefined);
     expect(mapped.cost).toEqual({ input: 1, output: 5, cacheRead: 0.1, cacheWrite: 1.25 });
 });
 
