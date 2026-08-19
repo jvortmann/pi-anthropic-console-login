@@ -1,5 +1,13 @@
 # Changelog
 
+## v3.1
+
+### Fixes
+
+- Register console models with the context window, output limit, image support and reasoning support the API reports, instead of deriving them from a hand-maintained table that disagreed with the API for half the catalog. `claude-fable-5` was registered with a fifth of its real context window and `claude-opus-4-5` with five times its own
+- Read model pricing from pi's built-in Anthropic catalog, which covers the same model ids, so `claude-fable-5` no longer registers free of charge and `claude-sonnet-5` no longer inherits Sonnet 4.6's rates
+- Send current models adaptive thinking instead of a token budget, which is the only form they accept, and stop the `xhigh` and `max` thinking levels from silently falling back to `high`
+
 ## v3.0
 
 ### Breaking changes
