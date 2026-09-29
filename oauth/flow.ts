@@ -3,7 +3,7 @@ import { startCallbackServer } from "./callback-server.js";
 import { AUTHORIZE_URL, CLIENT_ID, LOCAL_REDIRECT_URI, MANUAL_REDIRECT_URI, SCOPES, TOKEN_URL } from "./constants.js";
 import { parseAuthorizationInput } from "./parse.js";
 import { generatePKCE } from "./pkce.js";
-import { fetchWithRetry } from "./request.js";
+import { fetchWithRetry, neverSent } from "./request.js";
 import { createApiKey, exchangeCode } from "./tokens.js";
 
 export async function login(callbacks: OAuthLoginCallbacks): Promise<OAuthCredentials> {
@@ -151,7 +151,7 @@ async function exchangeRefreshToken(credentials: OAuthCredentials, signal?: Abor
                 refresh_token: credentials.refresh,
             }),
         },
-        { signal },
+        { signal, retryOn: neverSent },
     );
 
     if (!response.ok) {

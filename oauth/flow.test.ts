@@ -16,6 +16,12 @@ function freshCredentials() {
     return { refresh: `refresh-token-${issued}`, access: "sk-ant-old", expires: 0 };
 }
 
+/** The error Node's fetch throws, with the system error code in its cause. */
+function nodeFailure(code: string) {
+    return new TypeError("fetch failed", { cause: Object.assign(new Error(code), { code }) });
+}
+
+
 test("does not contact the token endpoint when the refresh is already aborted", async () => {
     const controller = new AbortController();
     controller.abort();
@@ -30,13 +36,13 @@ test("does not contact the token endpoint when the refresh is already aborted", 
     expect(calls).toBe(0);
 });
 
-test("retries the token request after a transient connection failure", async () => {
+test("retries the token request after a DNS failure", async () => {
     let attempts = 0;
 
     globalThis.fetch = (async (url: string) => {
         if (url === TOKEN_URL) {
             attempts += 1;
-            if (attempts === 1) throw new TypeError("fetch failed");
+            if (attempts === 1) throw nodeFailure("ENOTFOUND");
             return new Response(
                 JSON.stringify({ access_token: "oauth-access", refresh_token: "next-refresh", expires_in: 3600 }),
                 { status: 200 },
@@ -50,6 +56,55 @@ test("retries the token request after a transient connection failure", async () 
     expect(attempts).toBe(2);
     expect(result.refresh).toBe("next-refresh");
     expect(result.access).toBe("sk-ant-new");
+});
+
+test("does not send the refresh token again after the connection drops mid-request", async () => {
+    let tokenRequests = 0;
+
+    globalThis.fetch = (async (url: string) => {
+        if (url === TOKEN_URL) {
+            tokenRequests += 1;
+            if (tokenRequests === 1) {
+                throw new TypeError("fetch failed", {
+                    cause: Object.assign(new Error("read ECONNRESET"), { code: "ECONNRESET" }),
+                });
+            }
+            return new Response(
+                JSON.stringify({ access_token: "oauth-access", refresh_token: "next-refresh", expires_in: 3600 }),
+                { status: 200 },
+            );
+        }
+        return new Response(JSON.stringify({ raw_key: "sk-ant-new" }), { status: 200 });
+    }) as unknown as typeof fetch;
+
+    await refreshToken(freshCredentials()).catch(() => undefined);
+
+    expect(tokenRequests).toBe(1);
+});
+
+test.each([
+    ["a refused connection in Node", nodeFailure("ECONNREFUSED")],
+    ["a DNS timeout in Node", nodeFailure("EAI_AGAIN")],
+    ["a connect timeout in Node", nodeFailure("UND_ERR_CONNECT_TIMEOUT")],
+    ["a refused connection in Bun", Object.assign(new Error("Unable to connect"), { code: "ConnectionRefused" })],
+])("retries the token request after %s", async (_name, failure) => {
+    let tokenRequests = 0;
+
+    globalThis.fetch = (async (url: string) => {
+        if (url === TOKEN_URL) {
+            tokenRequests += 1;
+            if (tokenRequests === 1) throw failure;
+            return new Response(
+                JSON.stringify({ access_token: "oauth-access", refresh_token: "next-refresh", expires_in: 3600 }),
+                { status: 200 },
+            );
+        }
+        return new Response(JSON.stringify({ raw_key: "sk-ant-new" }), { status: 200 });
+    }) as unknown as typeof fetch;
+
+    await refreshToken(freshCredentials()).catch(() => undefined);
+
+    expect(tokenRequests).toBe(2);
 });
 
 test("retries the api key request after a transient connection failure", async () => {
@@ -151,7 +206,7 @@ test("gives up after a bounded number of connection failures", async () => {
 
     globalThis.fetch = (async () => {
         attempts += 1;
-        throw new TypeError("fetch failed");
+        throw nodeFailure("ENOTFOUND");
     }) as unknown as typeof fetch;
 
     await expect(refreshToken(freshCredentials())).rejects.toThrow(/fetch failed/);
