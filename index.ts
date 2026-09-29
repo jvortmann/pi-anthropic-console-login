@@ -14,6 +14,7 @@
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import * as codingAgent from "@earendil-works/pi-coding-agent";
+import { getBuiltinModel } from "@earendil-works/pi-ai/providers/all";
 import { streamConsole } from "./api/stream.js";
 import { FALLBACK_MODELS, fetchModels, refreshConsoleModels } from "./models/index.js";
 import { login, refreshToken } from "./oauth/index.js";
@@ -25,8 +26,8 @@ export default function (pi: ExtensionAPI) {
 
     // The console serves the same models as the built-in provider but reports
     // neither pricing nor request-shaping hints, so both are read from the
-    // catalog pi already keeps current for those ids.
-    const lookupHostModel = (modelId: string) => pi.modelRegistry.find(HOST_CATALOG_PROVIDER_ID, modelId);
+    // catalog pi ships for those ids.
+    const lookupHostModel = (modelId: string) => getBuiltinModel(HOST_CATALOG_PROVIDER_ID as never, modelId as never);
 
     pi.registerProvider(PROVIDER_ID, {
         baseUrl: PROVIDER_BASE_URL,
