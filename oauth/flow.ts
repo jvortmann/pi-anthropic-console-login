@@ -113,9 +113,33 @@ export async function login(callbacks: OAuthLoginCallbacks): Promise<OAuthCreden
     };
 }
 
+interface TokenExchange {
+    refresh: string;
+    oauthAccess: string;
+    expires: number;
+    apiKey?: string;
+}
+
+/**
+ * The console retires a refresh token when it answers. A refresh that stops
+ * before pi saves its result can then use the kept answer again.
+ */
+const exchanges = new Map<string, TokenExchange>();
+
 export async function refreshToken(credentials: OAuthCredentials, signal?: AbortSignal): Promise<OAuthCredentials> {
     signal?.throwIfAborted();
 
+    const exchange = exchanges.get(credentials.refresh) ?? (await exchangeRefreshToken(credentials, signal));
+    exchange.apiKey ??= await createApiKey(exchange.oauthAccess, signal);
+
+    return {
+        refresh: exchange.refresh,
+        access: exchange.apiKey,
+        expires: exchange.expires,
+    };
+}
+
+async function exchangeRefreshToken(credentials: OAuthCredentials, signal?: AbortSignal): Promise<TokenExchange> {
     const response = await fetchWithRetry(
         TOKEN_URL,
         {
@@ -140,11 +164,11 @@ export async function refreshToken(credentials: OAuthCredentials, signal?: Abort
         expires_in: number;
     };
 
-    const apiKey = await createApiKey(data.access_token, signal);
-
-    return {
+    const exchange = {
         refresh: data.refresh_token,
-        access: apiKey,
+        oauthAccess: data.access_token,
         expires: Date.now() + data.expires_in * 1000 - 5 * 60 * 1000,
     };
+    exchanges.set(credentials.refresh, exchange);
+    return exchange;
 }
