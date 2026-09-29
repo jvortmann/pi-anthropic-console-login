@@ -37,4 +37,4 @@ The live model catalog is kept up to date through the provider's `refreshModels`
 
 ## License
 
-MIT
+MIT. See [LICENSE](LICENSE).
