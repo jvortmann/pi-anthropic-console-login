@@ -31,6 +31,8 @@ export interface HostModel {
     cost?: ProviderModelConfig["cost"];
     compat?: ProviderModelConfig["compat"];
     thinkingLevelMap?: ProviderModelConfig["thinkingLevelMap"];
+    promptCache?: ProviderModelConfig["promptCache"];
+    inputLimits?: ProviderModelConfig["inputLimits"];
 }
 
 /** Resolves the host catalog entry for a model id, when the host catalog knows it. */

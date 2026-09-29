@@ -24,6 +24,8 @@ export function mapApiModelsToProviderConfigs(
                 maxTokens: m.max_tokens ?? traits.maxTokens,
                 compat: host?.compat,
                 thinkingLevelMap: host?.thinkingLevelMap,
+                promptCache: host?.promptCache,
+                inputLimits: host?.inputLimits,
             };
         });
 }

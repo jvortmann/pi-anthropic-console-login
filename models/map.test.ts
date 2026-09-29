@@ -74,6 +74,24 @@ test("carries the host catalog's thinking levels onto the console model", () => 
     expect(mapped.thinkingLevelMap).toEqual({ xhigh: "xhigh", max: "max" });
 });
 
+test("keeps the prompt cache warm for as long as the host catalog allows", () => {
+    const [mapped] = mapApiModelsToProviderConfigs([apiModel("claude-opus-5")], () => ({
+        promptCache: { short: 300, long: 3600 },
+    }));
+
+    expect(mapped.promptCache).toEqual({ short: 300, long: 3600 });
+});
+
+test("limits requests and images the way the host catalog does", () => {
+    const inputLimits = {
+        maxRequestBytes: 33554432,
+        images: { maxPerRequest: 600, resize: { maxWidth: 2000, maxHeight: 2000 } },
+    };
+    const [mapped] = mapApiModelsToProviderConfigs([apiModel("claude-opus-5")], () => ({ inputLimits }));
+
+    expect(mapped.inputLimits).toEqual(inputLimits);
+});
+
 test("prices a model from the host catalog when it knows that model", () => {
     const [mapped] = mapApiModelsToProviderConfigs([apiModel("claude-fable-5")], () => ({
         cost: { input: 10, output: 50, cacheRead: 1, cacheWrite: 12.5 },
