@@ -1,4 +1,5 @@
 import type { ProviderModelConfig } from "@earendil-works/pi-coding-agent";
+import { PROVIDER_ID } from "../provider.js";
 import { lookupTraits } from "./traits.js";
 import type { AnthropicModelInfo, HostModel, HostModelLookup } from "./types.js";
 
@@ -32,11 +33,21 @@ export function withHostModel(model: ProviderModelConfig, lookupHostModel?: Host
     return {
         ...model,
         cost: { ...(host.cost ?? model.cost) },
-        compat: host.compat,
+        compat: consoleCompat(host.compat),
         thinkingLevelMap: host.thinkingLevelMap,
         promptCache: host.promptCache,
         inputLimits: host.inputLimits,
     };
+}
+
+/** pi prices a fallback reply only from an entry of the requesting provider. */
+function consoleCompat(compat: HostModel["compat"]): HostModel["compat"] {
+    const fallbacks = (compat as { allowedFallbackModels?: { provider: string }[] } | undefined)?.allowedFallbackModels;
+    if (!fallbacks) return compat;
+    return {
+        ...compat,
+        allowedFallbackModels: fallbacks.map((fallback) => ({ ...fallback, provider: PROVIDER_ID })),
+    } as HostModel["compat"];
 }
 
 function hostModel(modelId: string, lookupHostModel?: HostModelLookup): HostModel | undefined {

@@ -66,6 +66,21 @@ test("carries the host catalog's compatibility settings onto the console model",
     expect(mapped.compat).toEqual({ forceAdaptiveThinking: true, supportsTemperature: false });
 });
 
+test("prices a server-side fallback reply under the console provider", () => {
+    const cost = { input: 5, output: 25, cacheRead: 0.5, cacheWrite: 6.25 };
+    const [mapped] = mapApiModelsToProviderConfigs([apiModel("claude-fable-5")], () => ({
+        compat: {
+            forceAdaptiveThinking: true,
+            allowedFallbackModels: [{ provider: "anthropic", model: "claude-opus-5", cost }],
+        },
+    }));
+
+    expect(mapped.compat).toEqual({
+        forceAdaptiveThinking: true,
+        allowedFallbackModels: [{ provider: "anthropic-console", model: "claude-opus-5", cost }],
+    });
+});
+
 test("carries the host catalog's thinking levels onto the console model", () => {
     const [mapped] = mapApiModelsToProviderConfigs([apiModel("claude-opus-5")], () => ({
         thinkingLevelMap: { xhigh: "xhigh", max: "max" },
