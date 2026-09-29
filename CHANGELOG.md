@@ -1,5 +1,13 @@
 # Changelog
 
+## v3.1.1
+
+### Fixes
+
+- Keep a refreshed console login when pi does not save it. The console retires a refresh token when it answers, so a refresh that stopped after that answer lost the login. This happened when the model selector closed, a refresh timed out, or the API key request failed. Every later refresh then failed with `invalid_grant`. The model selector showed `Could not refresh anthropic-console; showing cached models.`. The extension now keeps the answer, and the next refresh in the same pi process saves it
+- Send the refresh token again only when the first request did not leave the machine. A failed host lookup and a refused connection are such cases. A connection that dropped after the send spent the token, and the retry then failed with `invalid_grant`
+- A login that already fails with `invalid_grant` cannot recover. Run `/login` again
+
 ## v3.1
 
 ### Fixes
