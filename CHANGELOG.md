@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.1.3
+
+### Fixes
+
+- Price a reply from an Anthropic fallback model at the rate of that model. The fallback list named the `anthropic` provider, so pi priced the reply at the rate of the requested model
+
 ## v3.1.2
 
 ### Fixes
