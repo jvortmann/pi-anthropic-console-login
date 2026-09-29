@@ -13,21 +13,30 @@ export function mapApiModelsToProviderConfigs(
         })
         .map((m) => {
             const traits = lookupTraits(m.id);
-            const host = hostModel(m.id, lookupHostModel);
-            return {
+            const advertised: ProviderModelConfig = {
                 id: m.id,
                 name: `${m.display_name} (console)`,
                 reasoning: m.capabilities?.thinking?.supported ?? traits.reasoning,
                 input: advertisedInput(m) ?? traits.input,
-                cost: { ...(host?.cost ?? traits.cost) },
+                cost: { ...traits.cost },
                 contextWindow: m.max_input_tokens ?? traits.contextWindow,
                 maxTokens: m.max_tokens ?? traits.maxTokens,
-                compat: host?.compat,
-                thinkingLevelMap: host?.thinkingLevelMap,
-                promptCache: host?.promptCache,
-                inputLimits: host?.inputLimits,
             };
+            return withHostModel(advertised, lookupHostModel);
         });
+}
+
+export function withHostModel(model: ProviderModelConfig, lookupHostModel?: HostModelLookup): ProviderModelConfig {
+    const host = hostModel(model.id, lookupHostModel);
+    if (!host) return model;
+    return {
+        ...model,
+        cost: { ...(host.cost ?? model.cost) },
+        compat: host.compat,
+        thinkingLevelMap: host.thinkingLevelMap,
+        promptCache: host.promptCache,
+        inputLimits: host.inputLimits,
+    };
 }
 
 function hostModel(modelId: string, lookupHostModel?: HostModelLookup): HostModel | undefined {

@@ -2,7 +2,7 @@ import type { ProviderModelConfig } from "@earendil-works/pi-coding-agent";
 import { PROVIDER_API, PROVIDER_BASE_URL, PROVIDER_ID } from "../provider.js";
 import { FALLBACK_MODELS } from "./fallback.js";
 import { fetchModels } from "./fetch.js";
-import { mapApiModelsToProviderConfigs } from "./map.js";
+import { mapApiModelsToProviderConfigs, withHostModel } from "./map.js";
 import type { AnthropicModelInfo, HostModelLookup } from "./types.js";
 
 interface RefreshCredential {
@@ -51,22 +51,29 @@ export async function refreshConsoleModels(
     fetchImpl: ModelFetcher = fetchModels,
     lookupHostModel?: HostModelLookup,
 ): Promise<ProviderModelConfig[]> {
-    const stored = readStoredCatalog(context);
-    if (!context.allowNetwork) return stored ?? FALLBACK_MODELS;
+    const cached = readStoredCatalog(context, lookupHostModel) ?? readFallbackCatalog(lookupHostModel);
+    if (!context.allowNetwork) return cached;
     const apiKey = extractApiKey(context.credential);
-    if (!apiKey) return stored ?? FALLBACK_MODELS;
+    if (!apiKey) return cached;
     const models = await fetchImpl(apiKey, context.signal);
-    if (!models || models.length === 0) return stored ?? FALLBACK_MODELS;
+    if (!models || models.length === 0) return cached;
 
     const refreshed = mapApiModelsToProviderConfigs(models, lookupHostModel);
     await publishCatalog(context, refreshed);
     return refreshed;
 }
 
-function readStoredCatalog(context: ConsoleRefreshContext): ProviderModelConfig[] | undefined {
+function readStoredCatalog(
+    context: ConsoleRefreshContext,
+    lookupHostModel?: HostModelLookup,
+): ProviderModelConfig[] | undefined {
     const entry = context.stored;
     if (!entry || entry.models.length === 0) return undefined;
-    return entry.models.map(toProviderModelConfig);
+    return entry.models.map((model) => withHostModel(toProviderModelConfig(model), lookupHostModel));
+}
+
+function readFallbackCatalog(lookupHostModel?: HostModelLookup): ProviderModelConfig[] {
+    return FALLBACK_MODELS.map((model) => withHostModel(model, lookupHostModel));
 }
 
 async function publishCatalog(context: ConsoleRefreshContext, models: ProviderModelConfig[]): Promise<void> {

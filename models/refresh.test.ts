@@ -54,6 +54,59 @@ test("keeps the stored catalog when the network is not allowed", async () => {
     expect(result.map((m) => m.id)).toEqual(["claude-opus-5"]);
 });
 
+test("applies the host catalog entry to the stored catalog at startup", async () => {
+    const result = await refreshConsoleModels(
+        {
+            credential: { type: "oauth", access: "sk-ant-key" },
+            allowNetwork: false,
+            stored: { models: [storedModel("claude-opus-5", "Claude Opus 5 (console)")] },
+            publish: fakePublish().publish,
+        },
+        async () => {
+            throw new Error("should not fetch without network access");
+        },
+        () => ({ compat: { forceAdaptiveThinking: true } }),
+    );
+
+    expect(result[0].compat).toEqual({ forceAdaptiveThinking: true });
+});
+
+test("prices and shapes stored models like the host catalog at startup", async () => {
+    const host = {
+        cost: { input: 10, output: 50, cacheRead: 1, cacheWrite: 12.5 },
+        thinkingLevelMap: { xhigh: "xhigh" as const },
+        promptCache: { short: 300, long: 3600 },
+        inputLimits: { maxRequestBytes: 33554432 },
+    };
+
+    const [stored] = await refreshConsoleModels(
+        {
+            allowNetwork: false,
+            stored: { models: [storedModel("claude-fable-5", "Claude Fable 5 (console)")] },
+            publish: fakePublish().publish,
+        },
+        async () => null,
+        () => host,
+    );
+
+    expect({
+        cost: stored.cost,
+        thinkingLevelMap: stored.thinkingLevelMap,
+        promptCache: stored.promptCache,
+        inputLimits: stored.inputLimits,
+    }).toEqual(host);
+});
+
+test("applies the host catalog entry to the fallback catalog at startup", async () => {
+    const result = await refreshConsoleModels(
+        { allowNetwork: false, publish: fakePublish().publish },
+        async () => null,
+        (modelId) => (modelId === "claude-opus-4-7" ? { compat: { forceAdaptiveThinking: true } } : undefined),
+    );
+
+    expect(result.find((m) => m.id === "claude-opus-4-7")?.compat).toEqual({ forceAdaptiveThinking: true });
+});
+
 test("persists a successful live fetch for later sessions", async () => {
     const publisher = fakePublish();
 
