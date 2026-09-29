@@ -15,7 +15,9 @@
         "test": "bun test"
     },
     "pi": {
-        "extensions": ["./index.ts"]
+        "extensions": [
+            "./index.ts"
+        ]
     },
     "peerDependencies": {
         "@earendil-works/pi-ai": "*",
