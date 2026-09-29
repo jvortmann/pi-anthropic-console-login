@@ -29,6 +29,10 @@ test("throws a clear error for an unsupported version", () => {
     expect(() => requireSupportedPiVersion(undefined)).toThrow(/0\.84\.0/);
 });
 
+test("names the package in the error for an unsupported version", () => {
+    expect(() => requireSupportedPiVersion("0.83.0")).toThrow(/^pi-anthropic-console-login /);
+});
+
 test("passes through a supported version", () => {
     expect(() => requireSupportedPiVersion("0.84.0")).not.toThrow();
 });

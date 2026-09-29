@@ -11,7 +11,7 @@ export function requireSupportedPiVersion(version: string | undefined): void {
     if (isPiVersionSupported(version)) return;
     const found = version && version.length > 0 ? version : "unknown";
     throw new Error(
-        `anthropic-console-login requires pi >= ${MIN_PI_VERSION} (found ${found}). Please update pi.`,
+        `pi-anthropic-console-login requires pi >= ${MIN_PI_VERSION} (found ${found}). Please update pi.`,
     );
 }
 

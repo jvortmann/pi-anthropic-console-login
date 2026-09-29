@@ -1,4 +1,4 @@
-# anthropic-console-login
+# pi-anthropic-console-login
 
 A [pi](https://github.com/earendil-works/pi) package that adds **Anthropic Console** as an OAuth login provider. This authenticates against the Console (organization/API billing) instead of the personal claude.ai subscription.
 
@@ -9,7 +9,7 @@ A [pi](https://github.com/earendil-works/pi) package that adds **Anthropic Conso
 ## Install
 
 ```bash
-pi install git:github.com/jvortmann/anthropic-console-login
+pi install git:github.com/jvortmann/pi-anthropic-console-login
 ```
 
 ## Usage
