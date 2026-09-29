@@ -1,5 +1,13 @@
 # Changelog
 
+## v3.1.2
+
+### Fixes
+
+- Read the built-in Anthropic entry for each console model from pi-ai's catalog. The extension read it from `pi.modelRegistry`, which extensions do not have, so the v3.1 fixes never applied. `claude-fable-5` cost nothing, and current models got a thinking budget instead of adaptive thinking at the requested effort
+- Keep the console prompt cache warm, and limit requests and images, the same way as the built-in Anthropic models
+- Apply the built-in entry to the saved catalog and to the fallback list at startup. Before this, models kept the wrong thinking settings until a network refresh ran. When that refresh failed, they kept them for the whole session
+
 ## v3.1.1
 
 ### Fixes
