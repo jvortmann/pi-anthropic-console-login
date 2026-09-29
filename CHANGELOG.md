@@ -1,5 +1,13 @@
 # Changelog
 
+## v3.2.0
+
+### Changes
+
+- Rename the package and the repository to `pi-anthropic-console-login`. Install it with `pi install git:github.com/jvortmann/pi-anthropic-console-login`
+- An install from the old URL keeps working, because GitHub sends the old URL to the new repository. To move to the new URL, run `pi remove git:github.com/jvortmann/anthropic-console-login`, then the install command above
+- The provider id stays `anthropic-console`, so the login and the saved model list carry over
+
 ## v3.1.3
 
 ### Fixes
