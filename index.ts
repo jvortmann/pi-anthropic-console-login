@@ -1,11 +1,11 @@
 /**
  * Anthropic Console OAuth Provider
  *
- * Adds "Anthropic Console account" as a login option in pi,
- * authenticating against the Console (organization/API billing)
- * instead of the personal claude.ai subscription.
+ * Adds "Anthropic Console account" as a login option in pi. It signs in
+ * to the Console (organization/API billing), not to the personal
+ * claude.ai subscription.
  *
- * Requires pi >= 0.84.0.
+ * Needs pi >= 0.84.0.
  *
  * Usage:
  *   1. /login → select "Anthropic Console account · API usage billing"

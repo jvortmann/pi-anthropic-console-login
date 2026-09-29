@@ -5,7 +5,7 @@ export interface AnthropicModelInfo {
     display_name: string;
     created_at: string;
     type: "model";
-    /** Context window. Absent on older responses; the traits table covers that case. */
+    /** Context window. Absent on older responses. The traits table covers that case. */
     max_input_tokens?: number;
     /** Maximum output tokens. Absent on older responses. */
     max_tokens?: number;
@@ -24,8 +24,8 @@ export interface AnthropicModelListResponse {
 }
 
 /**
- * The console reports no pricing and no request-shaping hints, so both are read
- * from the entry pi already maintains for the same model id.
+ * The console reports no pricing and no request-shaping hints. The extension
+ * takes them from the pi-ai catalog entry for the same model id.
  */
 export interface HostModel {
     cost?: ProviderModelConfig["cost"];
